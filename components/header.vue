@@ -1,14 +1,3 @@
-# tourism_project
-
-### 头部 + 底部准备
-
->由于页面中的头部及底部都是一致的，所以可以在 `components` 文件夹中创建 `header.vue` `footer.vue` ，嵌套在 `layouts` 文件夹下的 `default.vue` 中
-
-#### 头部的制作 底部的制作
-
-> 头部制作如下，底部制作略
-
-```vue
 <template>
   <div class="header">
     <el-row type="flex" justify="space-between" class="main">
@@ -24,7 +13,7 @@
         <nuxt-link to="/air">国内机票</nuxt-link>
       </el-row>
       <!-- 登录显示相关 -->
-        <el-row type="flex">
+        <el-row type="flex" class="aboutLogin">
             <nuxt-link to="/user/login">登录/注册</nuxt-link>
         </el-row>
     </el-row>
@@ -79,40 +68,15 @@ export default {
                 }
             }
         }
+
+        .aboutLogin{
+            a{
+                &:hover{
+                    color: #409eff;
+                    text-decoration: underline;
+                }
+            }
+        }
     }
 }
 </style>
-```
-
-####引入 - 注册 - 使用
-
-> default.vue
-
-```vue
-<template>
-  <div>
-    <!-- 头部 -->
-    <Header />
-    <nuxt />
-    <!-- 底部 -->
-    <Footer />
-  </div>
-</template>
-<script>
-import Header from '@/components/header'
-import Footer from '@/components/footer'
-export default {
-  components: {
-    Header, Footer
-  }
-}
-</script>
-```
-
-
-
-
-
-
-
-####  ####
