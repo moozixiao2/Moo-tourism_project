@@ -111,6 +111,8 @@ export default {
 
 ### 首页 ###
 
+####轮播图制作
+
 > 轮播图制作 - element-ui 走马灯
 
 > 由于在 `div` 中设置背景图片显示，`div` 本身没有高度，所以需设置高度，以及父容器样式
@@ -145,10 +147,53 @@ mounted () {
 }
 ```
 
+#### tab切换
+
+>通过设置 tab 切换的数据数组，在 `span` 标签中遍历，设置显示的 `span` 切换
+
+> 在 `input` 中动态判定 tab当前数据索引中的 `placeholder`，实现切换
+
+> 设置 `span` 的点击事件，将对应的索引赋给 `current`，并判断 `index`等于 **2** （机票）时，跳转至机票的页面
+
+>通过动态绑定 `span` 的 class 来设置当前点击的 tab 高亮显示
+
+**布局设置**
+
+```html
+<div class="tab-wrap">
+    <el-row type="flex" class="tab-navs">
+        <span v-for="(item, index) in tabOptions" :key='index' @click='handleClick(index)' :class="{active: current === index}"><i>{{ item.title }}</i></span>
+    </el-row>
+    <el-row type="flex" class="tab-input">
+        <el-input :placeholder="tabOptions[current].placeholder">
+            <i slot="suffix" class="el-input__icon el-icon-search"></i>
+        </el-input>
+    </el-row>
+</div>
+```
+
+**data设置**
+
+```js
+//当前tab
+current: 0,
+//tab数据设置
+tabOptions:[
+    {
+        title: '攻略',
+        placeholder: '请输入城市'
+    },
+    {
+        title: '酒店',
+        placeholder: '请输入城市 - 搜索城市'
+    },
+    {
+        title: '机票',
+        placeholder: ''
+    }
+]
+```
 
 
 
-
-
-
-####  ####
+####  
