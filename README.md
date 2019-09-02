@@ -194,6 +194,54 @@ tabOptions:[
 ]
 ```
 
+### 登录组件
 
+> 登录页面是由标签页组成的 **登录 - 注册** 切换，通过点击标签显示对应的表单
 
-####  
+>因此可以在登录组件页面设置标签页标签的切换功能
+
+> 而登录及注册的表单则可以分离出两个组件，登录组件则引入 - 注册 - 使用并判断即可
+
+**登录组件设置**
+
+```html
+<div class="login-wrap">
+    <el-row type='flex' justify='center' align='middle' class="login-form">
+      <div class="login-tab-wrap">
+        <el-row type="flex" justify="center" class="login-tabs">
+          <span v-for="(item, index) in ['登录', '注册']" :key='index' @click="current = index" :class='{active: current === index}'>{{item}}</span>
+        </el-row>
+
+        <!-- loginForm组件 -->
+        <LoginForm v-if="current === 0" />
+
+        <!-- register组件 -->
+        <RegisterForm v-else />
+      </div>
+    </el-row>
+</div>
+```
+
+**script设置**
+
+```js
+// 引入
+import LoginForm from '@/components/user/loginForm'
+import RegisterForm from '@/components/user/registerForm'
+export default {
+  components: {
+    LoginForm, RegisterForm
+  },
+  data() {
+    return {
+      // 当前tab
+      current: 0
+    }
+  }
+}
+```
+
+####登录表单 components/loginForm.vue
+
+####注册表单 components/registerForm.vue
+
