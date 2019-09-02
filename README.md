@@ -84,7 +84,7 @@ export default {
 </style>
 ```
 
-####引入 - 注册 - 使用
+#### 引入 - 注册 - 使用 ####
 
 > default.vue
 
@@ -107,6 +107,42 @@ export default {
   }
 }
 </script>
+```
+
+### 首页 ###
+
+> 轮播图制作 - element-ui 走马灯
+
+> 由于在 `div` 中设置背景图片显示，`div` 本身没有高度，所以需设置高度，以及父容器样式
+
+```vue
+<div class="banners">
+    <el-carousel indicator-position="none" arrow="always">
+        <el-carousel-item v-for="(item, index) in banners" :key="index">
+            <div class="banners-image" :style="`height:700px;background: url(${$axios.defaults.baseURL + item.url}) center center no-repeat;background-size:contain contain`"></div>
+        </el-carousel-item>
+    </el-carousel>
+</div>
+```
+
+> 创建获得轮播图接口
+
+```js
+data() {
+    return {
+      //轮播图图片数据
+      banners: []
+    }
+},
+mounted () {
+    this.$axios({
+      url: '/scenics/banners'
+    })
+    .then(res => {
+      const { data } = res.data
+      this.banners = data
+    })
+}
 ```
 
 
