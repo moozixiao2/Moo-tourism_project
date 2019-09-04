@@ -26,7 +26,7 @@ export default {
   data() {
     return {
       // 当前tab
-      current: 0
+      current: 1
     }
   }
 }

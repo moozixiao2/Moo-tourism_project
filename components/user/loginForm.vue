@@ -36,15 +36,29 @@ export default {
     },
     methods: {
         handleLogin(){
-            this.$axios({
-                url: '/accounts/login',
-                method: 'post',
-                data: this.form
-            })
-            .then(res => {
-                console.log(res)
-                this.$message.success(res.statusText + '')
-            })
+            // 二次验证
+            this.$refs.form.validate(valid => {
+                if(valid){
+                    // 接口
+                    this.$axios({
+                        url: '/accounts/login',
+                        method: 'post',
+                        data: this.form
+                    })
+                    .then(res => {
+                        console.log(res)
+                        setTimeout(() => {
+                            this.$message.success('登录成功,正在为您跳转...')
+                            // 存入store
+                            this.$store.commit('user/setUserInfo', res.data)
+                            this.$router.push('/')
+                            console.log(this.$store.state.user)
+                        }, 1000)
+                    })
+                }else{
+                    this.$message.warnign('请输入必填项')
+                }
+            })  
         }
     },
 }

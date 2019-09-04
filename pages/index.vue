@@ -75,6 +75,8 @@ export default {
   
   /deep/ .el-carousel__container{
     height: 700px;
+    -webkit-filter: saturate(2); 
+    filter: saturate(2);
   }
   .tab-wrap{
     z-index:9;
