@@ -109,9 +109,9 @@ export default {
 </script>
 ```
 
-### 首页 ###
+### 1. 首页 ###
 
-####轮播图制作
+####1.1 轮播图制作
 
 > 轮播图制作 - element-ui 走马灯
 
@@ -147,7 +147,7 @@ mounted () {
 }
 ```
 
-#### tab切换
+#### 1.2 tab切换
 
 >通过设置 tab 切换的数据数组，在 `span` 标签中遍历，设置显示的 `span` 切换
 
@@ -157,7 +157,7 @@ mounted () {
 
 >通过动态绑定 `span` 的 class 来设置当前点击的 tab 高亮显示
 
-**布局设置**
+##### **1.2.1 布局设置** #####
 
 ```html
 <div class="tab-wrap">
@@ -172,7 +172,7 @@ mounted () {
 </div>
 ```
 
-**data设置**
+##### **1.2.2 data设置** #####
 
 ```js
 //当前tab
@@ -194,7 +194,9 @@ tabOptions:[
 ]
 ```
 
-### 登录组件
+### 2. 登录 - 注册
+
+#### 2.1 登录组件 ####
 
 > 登录页面是由标签页组成的 **登录 - 注册** 切换，通过点击标签显示对应的表单
 
@@ -202,7 +204,7 @@ tabOptions:[
 
 > 而登录及注册的表单则可以分离出两个组件，登录组件则引入 - 注册 - 使用并判断即可
 
-**登录组件设置**
+##### **2.1.1 登录组件设置** #####
 
 ```html
 <div class="login-wrap">
@@ -222,7 +224,7 @@ tabOptions:[
 </div>
 ```
 
-**script设置**
+##### **2.1.2 script设置** #####
 
 ```js
 // 引入
@@ -241,7 +243,7 @@ export default {
 }
 ```
 
-####登录表单 components/loginForm.vue
+#### 2.2. 登录表单 components/loginForm.vue ####
 
 > 创建登录表单组件、给表单绑定 `form` 对象，对应文本框双向绑定 `form` 对象中的属性，设置表单验证规则 `rules` 
 
@@ -249,7 +251,7 @@ export default {
 
 > 在 **store 文件夹中创建 user.js** 设置 `store`
 
-**登录表单变量及方法设置**
+##### **2.2.1 登录表单变量及方法设置** #####
 
 ```js
 export default {
@@ -280,13 +282,13 @@ export default {
                     })
                     .then(res => {
                         console.log(res)
+                        this.$message.success('登录成功,正在为您跳转...')
                         setTimeout(() => {
-                            this.$message.success('登录成功,正在为您跳转...')
                             // 存入store
                             this.$store.commit('user/setUserInfo', res.data)
-                            this.$router.push('/')
+                            this.$router.replace('/')
                             console.log(this.$store.state.user)
-                        }, 1000)
+                        }, 3000)
                     })
                 }else{
                     this.$message.warnign('请输入必填项')
@@ -297,7 +299,7 @@ export default {
 }
 ```
 
-**创建 user.js**   --  /store/user.js
+#### **2.3 创建 user.js**   --  /store/user.js ####
 
 ```js
 export const state = () => ({
@@ -317,7 +319,7 @@ export const mutations = {
 }
 ```
 
-**组件头部，右侧登录/注册的正确显示**  ---  components/header.vue 
+#### 2.4 组件头部，右侧登录/注册的正确显示**  ---  components/header.vue  ####
 
 > 通过判断是否有 token 来显示，若不存在 token 则显示 登录/注册 链接，反则显示用户头像，昵称相关布局
 
@@ -347,9 +349,7 @@ export const mutations = {
 </el-row>
 ```
 
-
-
-**用户退出**
+#### 2.5 用户退出 ####
 
 >在 components/header.vue 中处理设置退出方法，需在 /store/user.js - mutations 中设置清除用户数据
 
@@ -361,29 +361,29 @@ export const mutations = {
 handleExit(){
   this.$store.commit('user/clearUserInfo')
   this.$message.success('退出成功')
-  this.$router.push('/user')
+  this.$router.replace('/user/login')
 }
 ```
 
-#### 保存至本地
+#### 2.6. 保存至本地
 
 > 由于数据保存在缓存中，页面一刷新，数据则会不见，所以需要存储至本地
 
 > 依靠 `vuex-persistedstate` 插件
 
-**下载**
+##### **2.6.1 下载** #####
 
 ```js
 npm install --save vuex-persistedstate
 ```
 
-**在 `nuxt.config.js` 中的 `plugins` 中加入收下代码**
+##### 2.6.2 在 `nuxt.config.js` 中的 `plugins` 中加入收下代码** #####
 
 ```js
 plugins: [{ src: '~/plugins/localStorage.js', ssr: false }]
 ```
 
-**在 plugins 文件夹中创建 localStorage.js**
+##### **2.6.3 在 plugins 文件夹中创建 localStorage.js** #####
 
 ```js
 import createPersistedState from 'vuex-persistedstate'
@@ -397,7 +397,7 @@ export default ({store}) => {
 }
 ```
 
-####注册表单 components/registerForm.vue
+####2.7 注册表单 components/registerForm.vue
 
 > 创建注册表单组件结构，给表单绑定 `form` 对象，表单文本框双向绑定对应的 `from` 对象中的属性值，设置表单验证规则
 
@@ -405,7 +405,7 @@ export default ({store}) => {
 
 > 点击注册，需对表单进行二次验证，符合，则调用注册接口，成功则提示
 
-**注册表单变量及方法设置**
+##### 2.7.1 注册表单变量及方法设置** #####
 
 > 两次密码是否一致 **可查看element-ui 中 Form表单的自定义校验规则**
 
@@ -425,7 +425,7 @@ var validatePass = (rule, value, callback) => {
 repassword: [{ validator: validatePass, trigger: "blur" }],
 ```
 
-**完整的data**
+##### 2.7.2 完整的data** #####
 
 ```js
 data() {
@@ -452,7 +452,7 @@ data() {
         username: [
           { required: true, message: "请输入用户名/手机", trigger: "blur" },
           { pattern:/\d{11}/, message: "请输入11位手机号码", trigger: "blur" },
-          { pattern: /^1[3|5|8]{9}$/, message: "请输入以 13或15或18 开头的手机号码", trigger: "blur" },
+          { pattern: /^1[358]\d{9}$/, message: "请输入以 13或15或18 开头的手机号码", trigger: "blur" },
         ],
         password: [{ required: true, message: "请输入密码", trigger: "blur" }],
         repassword: [{ validator: validatePass, trigger: "blur" }],
@@ -463,7 +463,7 @@ data() {
 }
 ```
 
-**获得验证码的方法**
+##### **2.7.3 获得验证码的方法** #####
 
 ```js
 handleSendCode(){
@@ -473,8 +473,13 @@ handleSendCode(){
     return
   }
 
-  if(this.form.username.length !== 11) {
+  if(this.form.username.match(/\d{11}/)) {
     this.$message.warning('请输入正确的手机号格式（11位）')
+    return
+  }
+    
+  if(this.form.username.match(/^1[358]\d{9}$/)) {
+    this.$message.warning('请输入以 13或15或18 开头的手机号码')
     return
   }
 
@@ -488,12 +493,12 @@ handleSendCode(){
     const {code} = res.data
     this.$alert(`验证码：${code}`, '提示', {
       confirmButtonText: '确定'
-    });
+    })
   })
 }
 ```
 
-**注册的方法**
+##### **2.7.4 注册的方法** #####
 
 > 由于接口中接收的参数不含 `repassword`，则需将该属性值移除
 
@@ -515,13 +520,184 @@ handleRegister(){
         this.$message.success('注册成功,正为你跳转')
         this.$store.commit('user/setUserInfo', res.data)
         setTimeout(() => {
-          this.$router.push('/')
-        }, 2000)
+          this.$router.replace('/')
+        }, 3000)
       })
     }else{
       this.$message.warning('请输入必填项')
     }
   })
+}
+```
+
+### 3. 拦截器插件 ###
+
+> 在 plugins 文件夹中创建 axios.js
+
+```js
+import { Message } from "element-ui";
+
+// aixos 拦截器
+export default ( {$axios} ) => {
+    // 错误拦截
+    $axios.onError(res => {
+        // 解构
+        const {message, statusCode} = res.response.data
+        if(statusCode === 400){
+            Message.error(message)
+        }
+    })
+}
+```
+
+> 在 nuxt.config.js 调用
+
+```js
+ plugins: [
+     '@/plugins/element-ui',
+     '@/plugins/axios', // 调用 axios
+     { src: '~/plugins/localStorage.js', ssr: false }
+ ]
+```
+
+### 4. 机票 -- air/index ###
+
+> 创建搜索表单的组件， 嵌套在主页中
+
+#### 4.1 搜索组件 searchForm.vue ####
+
+> **出发城市及到达城市的制件** 使用 element-ui  input 输入框 中的 **远程搜索组件**
+
+> 远程搜索组件 `el-autocomplete` 
+>
+> **`fetch-suggestions`**：返回输入建议的方法，仅当你的输入建议数据 resolve 时，通过调用 callback(data:[]) 来返回它
+>
+> **`select`** : 点击选中建议项时触发
+
+##### 4.11 往返设置 （未开通） #####
+
+```js
+// tab切换时触发
+handleSearchTab(item, index){
+    if(index === 1){
+        this.$alert('往返功能暂未开通', '提示', { confirmButtonText: '确定'})
+    }
+}
+```
+
+##### 4.12 出发、到达城市功能 #####
+
+>只显示出发城市代码，到达城市类似
+>
+>通过**`fetch-suggestions`**绑定的函数，判断 **value** 的数据是否有，没有则不执行下面的代码，有，则调用实时机票接口，并通过绑定函数的回调返回数据，并设置第一个默认的显示（由于输入不点击选项会有bug，从而设置默认）
+
+```js
+ queryDepartSearch(value, cb){
+    if(!value){
+        cb([])
+        return
+    }
+    // 调用封装的函数来调用接口
+    this.searchFormInit(value, data => {
+        // 调用
+        cb(data)
+
+        // 设置默认第一个显示
+        this.form.departCity = data[0].value
+        this.form.departCode = data[0].sort
+    })
+}
+```
+
+**封装调用机票接口的函数**
+
+```js
+// 封装调用接口函数
+searchFormInit(value, callback){
+    this.$axios({
+        url: '/airs/city',
+        params: {name: value }
+    })
+    .then(res => {
+        console.log(res)
+        const {data} = res.data
+
+        // 处理为需要的form参数
+        const temp = []
+        data.forEach(e => {
+            e.value = e.name.replace('市','')
+            temp.push(e)
+        })
+
+        //回调
+        callback(temp)
+    })
+}
+```
+
+##### 4.13 出发时间设置 #####
+
+> 通过`v-mode`双向绑定 `form.departDate`，通过 moment 插件来设置时间格式
+
+```js
+// 需先引入
+handleDate(value){
+   this.form.departDate = moment(value).format('YYYY-MM-DD')
+}
+```
+
+##### 4.14  出发城市、到达城市互换 #####
+
+```js
+handleReverse(){
+    // 解构
+    const {departCity, departCode, destCity, destCode} = this.form
+    this.form.departCity = destCity
+    this.form.departCode = destCode
+    this.form.destCity = departCity
+    this.form.destCode = departCode
+}
+```
+
+##### 4.15 搜索按钮 #####
+
+> 点击按钮，需先判断出发城市、到达城市及出发日期是否为空，否，提示，是，则跳转对应参数的机票列表页
+
+```js
+handleSubmit(){
+    const {departCity, destCity, departDate} = this.form
+    if(!departCity){
+        this.$alert('请选择您要出发的城市', '提示', { confirmButtonText: '确定'})
+        return
+    }
+    if(!destCity){
+        this.$alert('请选择您要到达的城市', '提示', { confirmButtonText: '确定'})
+        return
+    }
+    if(!departDate){
+        this.$alert('请选择您要出发的日期', '提示', { confirmButtonText: '确定'})
+        return
+    }
+    this.$router.replace({
+        url: '/air/flights',
+        query: this.form
+    })
+}
+```
+
+#### 4.2 推荐机票 ####
+
+> 设置 ( `sales:[]` ) 数组接收调用特价机票接口返回的数据
+
+```js
+mounted () {
+    this.$axios({
+        url: '/airs/sale'
+    })
+        .then(res => {
+        const {data} = res.data
+        this.sales = data
+    })
 }
 ```
 

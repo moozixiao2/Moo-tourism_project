@@ -5,7 +5,7 @@
             <el-input  v-model="form.username" placeholder="用户名/手机"></el-input>
         </el-form-item>
         <el-form-item class="form-item" prop="password">
-            <el-input  v-model="form.password" placeholder="密码"  type="password"></el-input>
+            <el-input  v-model="form.password" placeholder="密码"  type="password" @keypress.enter.native="handleLogin"></el-input>
         </el-form-item>
 
         <p class="form-forget">
@@ -40,23 +40,29 @@ export default {
             this.$refs.form.validate(valid => {
                 if(valid){
                     // 接口
-                    this.$axios({
-                        url: '/accounts/login',
-                        method: 'post',
-                        data: this.form
-                    })
-                    .then(res => {
-                        console.log(res)
+                    // this.$axios({
+                    //     url: '/accounts/login',
+                    //     method: 'post',
+                    //     data: this.form
+                    // })
+                    // .then(res => {
+                    //     console.log(res)
+                    //     this.$message.success('登录成功,正在为您跳转...')
+                    //     setTimeout(() => {
+                    //         // 存入store
+                    //         this.$store.commit('user/setUserInfo', res.data)
+                    //         this.$router.replace('/')
+                    //         console.log(this.$store.state.user)
+                    //     }, 3000)
+                    // })
+                    this.$store.dispatch('user/login', this.form).then(res => {
+                        this.$message.success('登录成功,正在为您跳转...')
                         setTimeout(() => {
-                            this.$message.success('登录成功,正在为您跳转...')
-                            // 存入store
-                            this.$store.commit('user/setUserInfo', res.data)
-                            this.$router.push('/')
-                            console.log(this.$store.state.user)
-                        }, 1000)
+                            this.$router.replace('/')
+                        }, 3000)
                     })
                 }else{
-                    this.$message.warnign('请输入必填项')
+                    this.$message.warning('请输入必填项')
                 }
             })  
         }

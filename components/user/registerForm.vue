@@ -69,8 +69,13 @@ export default {
         return
       }
 
-      if(this.form.username.length !== 11) {
+      if(!this.form.username.match(/\d{11}/)) {
         this.$message.warning('请输入正确的手机号格式（11位）')
+        return
+      }
+
+      if(!this.form.username.match(/^1[3|5|8]{9}$/)) {
+        this.$message.warning('请输入以 13或15或18 开头的手机号码')
         return
       }
 

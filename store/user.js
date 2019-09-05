@@ -14,3 +14,23 @@ export const mutations = {
         state.userInfo = ''
     }
 }
+
+export const actions = {
+    // 定义触发 mutations 函数
+    // 触发 setUserInfo
+    login({commit}, data){
+        return this.$axios({
+            url: '/accounts/login',
+            method: 'post',
+            data
+        }).then(res => {
+            const data = res.data
+            commit('setUserInfo', data)
+            return data
+        })
+    },
+    // 触发 clearUserInfo
+    exit({commit}){
+        return commit('clearUserInfo')
+    }
+}

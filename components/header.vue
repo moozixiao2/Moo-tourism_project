@@ -57,9 +57,14 @@
 export default {
   methods: {
     handleExit() {
-      this.$store.commit("user/clearUserInfo");
+      // this.$store.commit("user/clearUserInfo");
+      // 触发 actions
+      this.$store.dispatch('user/exit')
+      // 提示
       this.$message.success("退出成功");
-      this.$router.push("/user");
+      setTimeout(() => {
+        this.$router.replace("/user/login");
+      }, 3000)
     }
   }
 };
@@ -116,6 +121,7 @@ export default {
         }
       }
       .el-dropdown-link {
+        cursor: pointer;
         img {
           width: 32px;
           height: 32px;
