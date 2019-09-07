@@ -18,6 +18,7 @@
                 :fetch-suggestions="queryDepartSearch"
                 placeholder="请搜索出发城市"
                 @select="handleDepartSelect"
+                @blur="handleDepartBlur"
                 class="el-autocomplete"
                 v-model="form.departCity"
                 ></el-autocomplete>
@@ -60,6 +61,9 @@ import moment from 'moment'
 export default {
     data(){
         return {
+            // 
+            depData: [],
+            destData: [],
             // form 参数
             form: {
                 departCity: '',
@@ -97,8 +101,9 @@ export default {
                 cb(data)
 
                 // 设置默认第一个显示
-                this.form.departCity = data[0].value
-                this.form.departCode = data[0].sort
+                this.depData = data
+                // this.form.departCity = data[0].value
+                // this.form.departCode = data[0].sort
             })
         },
 
@@ -115,8 +120,9 @@ export default {
                 cb(data)
 
                 // 设置默认第一个显示
-                this.form.destCity = data[0].value
-                this.form.destCode = data[0].sort
+                this.destData.data
+                // this.form.destCity = data[0].value
+                // this.form.destCode = data[0].sort
             })
             
         },
@@ -139,6 +145,15 @@ export default {
                 //回调
                 callback(temp)
             })
+        },
+        // 出发及到达文本框失焦
+        handleDepartBlur(){
+            this.form.departCity = this.depData[0].value
+            this.form.departCode = this.depData[0].sort
+        },
+        handleDestBlur(){
+            this.form.departCity = this.destData[0].value
+            this.form.departCode = this.destData[0].sort
         },
        
         // 出发城市下拉选择时触发

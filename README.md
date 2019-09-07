@@ -701,3 +701,163 @@ mounted () {
 }
 ```
 
+#### 4.3 机票列表 ####
+
+> 在 pages 文件夹 创建机票列表组件 -- **flights.vue**，在机票列表组件中使用嵌套  **顶部条件组件、航班头部组件 -- flightsListHead.vue、航班信息组件 -- flightsItem.vue**
+
+> 则需在机票列表组件 -- **flights.vue** 中 引入、注册、使用㠌套的组件
+
+> 在机票列表组件 -- **flights.vue** 中，组件一加载便调用机票列表接口，设置变量接收调用接口返回的数据 **flightsData**，设置变量接收调用接口返回的数据中航班信息的数据 **flightsList**
+
+> 通过组件传值，将 航班信息 传到航班信息组件，组件传值使用 **props** 设置 **data**属性
+
+> 在机票列表组件 -- **flights.vue** 嵌套的 航班信息组件 -- **flightsItem.vue** ，使用v-for 遍历 **flightsList**，通过 **:data='item'** 传数据 ，在航班信息组件中修改对应属性，从而显示相应的航班信息
+
+> 在航班信息组件中，需要计算**起飞与到达的相隔时间**，通过 **computed** --- **timeFormat**计算，设置对应的显示
+>
+> 当点击 **航班信息项** 时，显示对应的 **低价推荐项**，通过设置变量 **isShow: false**（默认全不显示），通过在 **航班信息项** 设置点击事件 **@click='isShow = !isShow'** ，**低价推荐项** 设置 **v-show='isShow'** 来实现需求
+
+> 在机票列表组件 -- **flights.vue** 中  使用的 航班信息组件下设置分页
+>
+> 通过设置变量 **pageData** 来存储分页数据，设置变量**total （分页总记录数）、pageIndex（分页页码）、pageSize（分布每页显示条数）**
+>
+> 需将遍历的航班信息组件的遍历数据改为 **分页数据 -- pageData**，配置 分页组件 对应项的数据，配置 **handleSizeChange** 方法 及 **handleCurrentChange** 方法，分别设置 pageSize 、pageData（分页数据）的对应显示，及 pageIndex、pageData（分页数据）
+
+##### 4.3.1 调用机票列表接口 #####
+
+```js
+// 变量设置 data 中
+// 接口返回的数据
+flightsData: {},
+// 机票数据
+flightsList: []
+------------------------------------------------------------------
+// 调用接口
+mounted () {
+    this.$axios({
+        url: '/airs',
+        params: this.$route.query
+    })
+    .then(res => {
+        // 接口返回的数据
+        this.flightsData = res.data
+        // 机票列表数据
+        this.flightsList = res.data.flights
+        // console.log(res.data)
+        // 分页数据
+        this.pageData = this.flightsList.slice(0, this.pageSize)
+        // 分页显示总记录数
+        this.total = this.flightsList.length
+    })
+}
+```
+
+##### 4.3.2 组件传数据 #####
+
+机票列表组件中 -- **flights.vue** 赋值给 data 属性
+
+```html
+<FlightsItem v-for='(item, index) in pageData' :key='index' :data='item' />
+```
+
+航班信息组件 -- **flightsItem.vue** 
+
+```js
+props: {
+    // 数据
+    data: {
+        type: Object,
+        // 默认是空数组
+        default: {}
+    }
+}
+```
+
+通过 **data.xx** 来设置对应项的数据显示，如航空信息：**{{ data.airline_name }}**
+
+##### 4.3.3 计算**起飞与到达的相隔时间** #####
+
+```js
+<el-col :span="8" class="flight-time">
+    <span>{{ timeFormat }}</span>
+</el-col>
+--------------------------------------------------------------
+computed: {
+    timeFormat(){
+        // 起飞，到达时间
+        const dep = this.data.dep_time.split(':')
+        const arr = this.data.arr_time.split(':')
+
+        // 转化成分钟
+        const depVal = dep[0] * 60 + +dep[1]
+        const arrVal = arr[0] * 60 + +arr[1]
+
+        // 起飞，到达差值
+        let rankVal = arrVal - depVal
+
+        // 当差值是负数时，可知道，时间会是明天了，得加上 24小时
+        rankVal = rankVal < 0 ? rankVal + 24*60 : rankVal
+
+        // 对应小时及分钟
+        const hours = Math.floor(rankVal / 60)
+        const min = rankVal % 60
+
+        return `${hours}时 ${min}分`
+    }
+}
+```
+
+##### 4.3.4 分页的显示 #####
+
+**设置分页相关变量及赋值对应的数据**
+
+```js
+// 变量设置 data
+// 分页数据
+pageData: [],
+// 分页所需的变量
+total: 0,
+pageIndex: 1,
+pageSize: 5
+-------------------------------------------------------------------------------------
+// 分页数据的赋值
+mounted () {
+    this.$axios({
+        url: '/airs',
+        params: this.$route.query
+    })
+        .then(res => {
+        // 接口返回的数据
+        this.flightsData = res.data
+        // 机票列表数据
+        this.flightsList = res.data.flights
+        // console.log(res.data)
+        // 分页数据
+        this.pageData = this.flightsList.slice(0, this.pageSize)
+        // 分页显示总记录数
+        this.total = this.flightsList.length
+    })
+}
+```
+
+**将遍历的航班信息组件的遍历数据改为 分页数据 -- `pageData`**
+
+```html
+<FlightsItem v-for='(item, index) in pageData' :key='index' :data='item' />
+```
+
+**配置 `handleSizeChange` 方法 及`handleCurrentChange` 方法**
+
+```js
+handleSizeChange(val){
+    this.pageSize = val
+    // 对应数据显示
+    this.pageData = this.flightsList.slice(0, val)
+},
+handleCurrentChange(val){
+    this.pageIndex = val
+    // 计算出对应显示的数据
+    this.pageData = this.flightsList.slice((this.pageIndex - 1) * this.pageSize, this.pageIndex * this.pageSize)
+}
+```
+
