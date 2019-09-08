@@ -198,9 +198,17 @@ export default {
                return
            }
            this.$router.replace({
-               url: '/air/flights',
+               path: '/air/flights',
                query: this.form
            })
+
+           // 本地存储搜索的数据
+           // 判断是否有数据
+           let airs = JSON.parse(localStorage.getItem('search_params_to_fliters')) || []
+        
+           airs.push(this.form)
+           // 设置本地存储
+           localStorage.setItem('search_params_to_fliters', JSON.stringify(airs) )
         }
     },
     mounted() {

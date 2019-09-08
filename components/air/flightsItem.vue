@@ -41,7 +41,8 @@
                         <el-col :span="3" class="choose-button">
                             <el-button 
                             type="warning" 
-                            size="mini">
+                            size="mini"
+                            @click='handleLinkTo(item.seat_xid)'>
                             选定
                             </el-button>
                             <p>剩余：{{ item.discount }}</p>
@@ -91,6 +92,15 @@ export default {
             const min = rankVal % 60
 
             return `${hours}时 ${min}分`
+        }
+    },
+    methods: {
+        // 跳转
+        handleLinkTo(seat_xid){
+            this.$router.replace({
+                url: '/air/orde',
+                query: {id: this.data.id, seat_xid}
+            })
         }
     }
 }

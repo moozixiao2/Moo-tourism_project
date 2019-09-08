@@ -425,7 +425,7 @@ var validatePass = (rule, value, callback) => {
 repassword: [{ validator: validatePass, trigger: "blur" }],
 ```
 
-##### 2.7.2 完整的data** #####
+##### 2.7.2 完整的data #####
 
 ```js
 data() {
@@ -858,6 +858,222 @@ handleCurrentChange(val){
     this.pageIndex = val
     // 计算出对应显示的数据
     this.pageData = this.flightsList.slice((this.pageIndex - 1) * this.pageSize, this.pageIndex * this.pageSize)
+}
+```
+
+##### 4.3.5 条件过滤（筛选） #####
+
+> 在 components/air 下创建 **flightsFilters.vue**，在 机票列表组件 -- **flights.vue** 引用、注册、使用
+
+> 条件过滤组件 -- **flightsFilters.vue** 的数据显示
+>
+> 通过在  **flightsFilters.vue** 组件中设置 **props** ，在 **flights.vue** 使用的 条件过滤组件的地方 通过 **:data='flightsData'** 传数据
+
+> 设置对应选择框改变事件 **@change** , 在该事件中设置一个发射的方法（$emit）传递对应文本框过滤条件对应的数据，且需在 **flights.vue** 使用条件过滤组件的地方进行事件监听,且在该监听的事件中设置分页对应显示的数据，并设置分页的正确显示
+
+###### **组件的数据显示** ######
+
+机型大小的数据需要自己配置
+
+```js
+// 机型数据
+airSizeList: [
+    {
+        label: '大',
+        value: 'L'
+    },
+    {
+        label: '中',
+        value: 'M'
+    },
+    {
+        label: '小',
+        value: 'S'
+    }
+]
+```
+
+在 **flightsFilters** 组件设置 props
+
+```js
+props:{
+    // fliters组件传过来的条件过滤数据
+    data:{
+        type: Object,
+        default: {}
+    }
+}
+```
+
+在 **flights.vue** 中
+
+```html
+<FlightsFilters :data='flightsData' />
+```
+
+需设置 flightsData ,由于在 **flightsFilters** 组件 中 通过 data.flights.xx 来渲染时，若没有在 flightsData 中设置对应数组中的空对象 -- info: {}，options: {}，**flights** 组件中 flightsData 加载没有 **flightsFilters** 组件 data.flights.xx 的快，则会出错  
+
+```js
+// 接口返回的数据
+flightsData: {
+    flights: [],
+    info: {},
+    options: {}
+}
+```
+
+在 **flightsFilters** 组件 中，通过 data.xx 来设置或遍历出对应结构的数据显示，其它的数据显示即仿同时间的渲染，如下时间的遍历：
+
+```js
+<el-col :span="4">
+    <el-select size="mini" v-model="flightTimes"  placeholder="起飞时间" @change="handleFlightTimes">
+        <el-option
+        v-for='(item,index) in data.options.flightTimes'
+        :key='index'
+        :label="`${item.from}:00 - ${item.to}:00`"
+        :value="`${item.from},${item.to}`"
+        >
+        </el-option>
+    </el-select>
+</el-col>
+```
+
+###### 机型的条件过滤 ######
+
+在 **flights.vue** 使用条件过滤组件的地方进行事件监听
+
+```html
+<FlightsFilters :data='flightsData' @setFlitersData='setFlitersData' />
+```
+
+> 起飞机场、航空公司的条件过滤则仿同机型条件过滤
+
+```js
+handleAirSize(value){
+    // 设置数据过滤，返回符合条件的数据数组
+    let arr = this.data.flights.filter(v => {
+        return v.plane_size === value
+    })
+	// 发射方法
+    this.$emit('setFlitersData', arr)
+}
+```
+
+>  **flights.vue** 中
+
+```js
+// flightsFilters组件 发射的方法
+setFlitersData(arr){
+    // 回到第一页
+    this.pageIndex = 1
+    // 显示对应的分页数据
+    this.flightsList = arr
+    // 分页总记录数
+    this.total = arr.length
+    // 分页
+    this.pageData = this.flightsList.slice((this.pageIndex - 1) * this.pageSize, this.pageIndex*this.pageSize)
+}
+```
+
+撤销条件  **flightsFilters** 组件中
+
+```js
+handleFiltersCancel(){
+    // 重置数据
+    this.airport = ""       
+    this.flightTimes = ""   
+    this.company = ""   
+    this.airSize = ""
+	// 发射事件，传入 原本的数据
+    this.$emit('setFlitersData', this.data.flights)
+}
+```
+
+##### 4.3.6 跳转至订单页 #####
+
+> 在 **flightsItem** 组件 中 给 选定按钮添加事件进行跳转 -- handleLinkTo(item.seat_xid)
+
+```html
+<el-col :span="3" class="choose-button">
+    <el-button 
+    type="warning" 
+    size="mini"
+    @click='handleLinkTo(item.seat_xid)'>
+    选定
+    </el-button>
+    <p>剩余：{{ item.discount }}</p>
+</el-col>
+```
+
+```js
+handleLinkTo(seat_xid){
+    this.$router.replace({
+        url: '/air/orde',
+        query: {id: this.data.id, seat_xid}
+    })
+}
+```
+
+##### 4.3.7  侧边栏 #####
+
+> 在 air/components 下创建 flightsAside组件
+>
+> 在 **flights.vue** 中 引入、注册、使用
+
+> 在 components/air 中 **searchForm.vue** 点击 搜索 按钮 存储参数到本地，则需先判断本地是否有该数据 ，再设置本地存储
+
+> 在 **flightsAside组件** 中 获得本地数据， 设置变量，存储本地的数据，在结构中渲染结构
+
+> 点击侧边栏的项，在同一组件中跳转（显示点击的数据），则需要在 **flights** 组件 中 添加侦听 **$route** 参数变化，实现数据刷新
+
+****
+
+**searchForm.vue** 中 搜索按钮事件 -- handleSubmit()
+
+```js
+// 本地存储搜索的数据
+// 判断是否有数据
+let airs = JSON.parse(localStorage.getItem('search_params_to_fliters')) || []
+
+airs.push(this.form)
+// 设置本地存储
+localStorage.setItem('search_params_to_fliters', JSON.stringify(airs) )
+```
+
+在 **flightsAside组件** 中 
+
+```js
+mounted () {
+    let arr = JSON.parse(localStorage.getItem('search_params_to_fliters')) || []
+    this.asideData = arr
+}
+```
+
+**渲染**
+
+```html
+nuxt-link :to="`/air/flights?departCity=${item.departCity}&departCode=${item.departCode}&destCity=${item.destCity}&destCode=${item.destCode}&departDate=${item.departDate}`" v-for="(item, index) in asideData" :key='index'>
+    <el-row type="flex" 
+    justify="space-between" 
+    align="middle"
+    class="history-item">
+        <div class="air-info">
+            <div class="to-from">{{ item.departCity }} - {{ item.destCity }}</div>
+            <p>{{ item.departDate }}</p>
+        </div>
+        <span>选择</span>
+    </el-row>
+</nuxt-link>
+```
+
+在 **flights** 组件 中 添加侦听 **$route** 参数变化
+
+```js
+watch: {
+    $route(){
+        // 封装的调用接中的函数
+        this.init()
+    }
 }
 ```
 
