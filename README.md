@@ -1008,7 +1008,7 @@ handleFiltersCancel(){
 ```js
 handleLinkTo(seat_xid){
     this.$router.replace({
-        url: '/air/orde',
+        path: '/air/order',
         query: {id: this.data.id, seat_xid}
     })
 }
@@ -1077,3 +1077,12 @@ watch: {
 }
 ```
 
+#### 4.4 订单列表 ####
+
+> 在 pages/air 文件夹下 创建 order.vue
+>
+> 在 components/air 文件夹下 创建 orderForm.vue 、orderAside.vue
+>
+> 在 order 组件 中 嵌套 orderForm组件（订单表单）、orderAside组件（侧边栏）
+
+> 根据 api 文档，在 orderForm组件中，创建表单提交所需的参数（data）中，将参数双向绑定到对应表单文本框位置，

@@ -98,7 +98,7 @@ export default {
         // 跳转
         handleLinkTo(seat_xid){
             this.$router.replace({
-                url: '/air/orde',
+                path: '/air/order',
                 query: {id: this.data.id, seat_xid}
             })
         }
