@@ -1085,4 +1085,323 @@ watch: {
 >
 > 在 order 组件 中 嵌套 orderForm组件（订单表单）、orderAside组件（侧边栏）
 
-> 根据 api 文档，在 orderForm组件中，创建表单提交所需的参数（data）中，将参数双向绑定到对应表单文本框位置，
+##### 4.4.1 orderForm组件（订单表单） #####
+
+> 根据 api 文档，在 orderForm组件中，创建表单提交所需的参数（data）中，将参数双向绑定到对应表单文本框位置
+
+> 通过 **添加乘机人** 按钮事件 `handleAddUsers` 为 users 添加 {username: '', id: ''}对象，在对应结构中，通过遍历 users 来实现结构的添加显示
+>
+> 通过移除事件 `handleDeleteUser`  传入对应索引参数，users 数组通过 **splice** 方法实现对 对应的移除的结构的数据的删除操作
+
+> 实现表单保险数据的遍历显示，
+>
+> 通过 `mounted` 钩子调用 **选择机票** 接口，传入对应的参数，
+>
+> 参数通过地址栏来获取 （解构 **this.$route.query** 获得 id、seat_xid），
+>
+> 调用接口成功返回的数据存储到 创建的变量 **airInfo** 中，
+>
+> 页面表单保险对应结构位置，通过遍历 **airInfo.insurances** 来实现渲染
+>
+> 通过 **change** 事件传入对应的 **id** 参数 来获得 表单参数 **insurances** 数组需要的 id
+
+> 手机验证码的获取与交互验证，同注册组件的验证码获取一致
+
+> 表单提交： 
+>
+> 通过设置 **data** 对象 来存储 机票表单提交所需的参数，通过 **地址栏** 可获取 所需的参数（id, seat_id），通过**二次验证表单**是否输入合格，否则 **return**，不执行以下代码；
+>
+> 成功，则调用 **提交机票订单** 接口，通过 **post** 方法，**headers** 来设置请求头 (获得 **token**)
+>
+> 成功，则提示并获得 **订单id** 且跳转至付款页
+
+###### **表单参数设置** ######
+
+```js
+users: [
+    {
+        username: '',
+        id: ''
+    }
+],
+insurances: [],
+contactName: '',
+contactPhone: '',
+invoice: false,
+captcha: '',
+// 接口返回的验证码
+code: 0,
+// 调用选择机票接口返回的数据
+airInfo: {}
+```
+
+###### 添加乘机人 ######
+
+```js
+handleAddUsers(){
+    this.users.push({
+        username: '',
+        id: ''
+    })
+}
+```
+
+###### 移除乘机人 ######
+
+```js
+handleDeleteUser(index){
+    this.users.splice(index, 1)
+}
+```
+
+###### 渲染表单保险结构 ######
+
+**调用选择机票接口**
+
+```js
+mounted () {
+    const {id, seat_xid} = this.$route.query
+    // 调用选择机票接口
+    this.$axios({
+        url: 'airs/' + id,
+        params: {seat_xid}
+    })
+    .then(res => {
+        this.airInfo = res.data
+        // console.log(res.data)
+    })
+}
+```
+
+**渲染结构**
+
+```html
+<div class="air-column">
+    <h2>保险</h2>
+    <div>
+        <div class="insurance-item" v-for="(item, index) in airInfo.insurances" :key='index'>
+            <el-checkbox @change="getInsurancesId(item.id)"
+            :label="`${item.type}：￥${item.price}/份×1  最高赔付${item.compensation}万`" 
+            border>
+            </el-checkbox> 
+        </div>
+    </div>
+</div>
+```
+
+**获得参数 insutances 所需的 id**
+
+```js
+getInsurancesId(id){
+    // 判断是否含有数据的值
+    const index = this.insurances.indexOf(id)
+    if(index > -1){
+        this.insurances.splice(index, 1)
+    }else{
+        this.insurances.push(id)
+    }
+    // console.log(this.insurances)
+}
+```
+
+###### 手机验证码 ######
+
+```js
+handleSendCaptcha(){
+    // 判断手机是否正确
+    if(!this.contactPhone){
+        this.$message.warning('请输入手机号')
+        return
+    }
+
+    if(!this.contactPhone.match(/\d{11}/)) {
+        this.$message.warning('请输入正确的手机号格式（11位）')
+        return
+    }
+
+    // 接口
+    this.$axios({
+        url: '/captchas',
+        method: 'post',
+        data: {tel: this.contactPhone}
+    })
+    .then(res => {
+        const {code} = res.data
+        this.code = code
+        this.$alert(`验证码：${code}`, '提示', {
+            confirmButtonText: '确定'
+        });
+    })
+}
+```
+
+###### 表单提交 ######
+
+**获得并设置参数**
+
+```js
+const {id, seat_xid} = this.$route.query
+// 接口参数
+const data ={
+    users: this.users,
+    insurances: this.insurances,
+    contactName: this.contactName,
+    contactPhone: this.contactPhone,
+    invoice: false,
+    captcha: this.captcha,
+    air: id,
+    seat_xid
+}
+```
+
+**表单验证**
+
+```js
+if(!this.users[0].username || !this.users[0].id){
+    this.$message.warning('请输入乘机人信息')
+    return
+}
+if(!this.contactName){
+    this.$message.warning('请输入联系人')
+    return
+}
+if(!this.contactName){
+    this.$message.warning('请输入联系人')
+    return
+}
+if(!this.contactPhone){
+    this.$message.warning('请输入手机号')
+    return
+}
+
+if(!this.contactPhone.match(/\d{11}/)) {
+    this.$message.warning('请输入正确的手机号格式（11位）')
+    return
+}
+
+if(this.code !== this.captcha) {
+    this.$message.warning('验证码错误，请重新输入')
+    this.captcha = ''
+    return
+}
+```
+
+**调用接口**
+
+```js
+const {token} = this.$store.state.user.userInfo
+// 调用接口
+this.$axios({
+    url: '/airorders',
+    method: 'post',
+    headers: {Authorization: `Bearer ${token}`},
+    data
+})
+.then(res => {
+    this.$message.success('正在生成订单中...')
+
+    const {id} = res.data.data
+    // 跳转到付款组件
+    this.$router.replace({
+        path: '/air/pay',
+        query: {id}
+    })
+})
+```
+
+##### 4.4.2 orderAside组件 ( 侧边栏 ) #####
+
+> 在 store 文件夹 中 创建 **air.js** 来设置 state 存储 机票信息 **airInfo**
+
+> 在 **orderForm组件** - **渲染表单保险结构** - **调用选择机票接口** 的 mouned 钩子 设置 操作 state 的函数来定义(传入) 机票信息 **airInfo**
+>
+> 在 **orderAside组件** 设置 **props** 属性 -- data 来绑定传入的数据
+>
+> 在 order 组件 使用 **orderAside组件** 的地方使用 props 定义的 data 绑定 state 的机票信息
+
+> 计算总价格
+>
+> 在 store 文件夹 中 的 air.js 设置存储 总价格的变量 allPrice
+>
+> 通过  **orderForm组件** 设置 allPrice 方法来计算 总价格并使用 **commit** 来调用 **mutations** 操作函数来存储数据到 state 中的 allPrice 中
+
+###### air.js ######
+
+```js
+// 存储
+export const state = () => ({
+    // 机票信息
+    airInfo: {
+        seat_infos: {}
+    },
+    // 总价格
+    allPrice: 0
+})
+// 定义及操作state
+export const mutations = {
+    // 设置机票信息函数
+    setAirInfo(state, data) {
+        state.airInfo = data
+    },
+    // 设置总价格函数
+    setAllPrice(state, price){
+        state.allPrice = price
+    }
+}
+```
+
+###### 设置 操作 state 的函数来定义(传入) 机票信息 **airInfo** -- **orderForm组件** ######
+
+```js
+mounted () {
+    const {id, seat_xid} = this.$route.query
+    // 调用选择机票接口
+    this.$axios({
+        url: 'airs/' + id,
+        params: {seat_xid}
+    })
+        .then(res => {
+        this.airInfo = res.data
+        // 存储至 state
+        this.$store.commit('air/setAirInfo', this.airInfo)
+    })
+}
+```
+
+###### 计算总价格 -- **orderForm组件** ######
+
+```js
+computed: {
+    allPrice(){
+        // 若请求未完成，暂时不需计算，返回0
+        if(!this.airInfo.seat_infos){
+            return 0;
+        }
+
+        // 设置
+        let price = 0
+        // 机票单价
+        price += this.airInfo.seat_infos.org_settle_price
+        // 保险
+        price += 30 * this.insurances.length
+        // 燃油
+        price += this.airInfo.airport_tax_audlet
+        // 人数
+        price *= this.users.length
+
+        // 存储 state
+        this.$store.commit('air/setAllPrice', price)
+        return price
+    }  
+}
+```
+
+> `computed`计算属性的值如果在页面中没引用的话函数是不会执行的，所以需要在页面中调用下`allPrice`.
+>
+> 在 **orderForm组件** 的`template`中任意位置加入以下代码
+
+```html
+<!-- 引用总价格来触发计算属性 -->
+<span v-show="false">{{allPrice}}</span>
+```
+

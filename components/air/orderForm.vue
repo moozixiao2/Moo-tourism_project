@@ -70,6 +70,8 @@
                 <el-button type="warning" class="submit" @click="handleSubmit">提交订单</el-button>
             </div>
         </div>
+        <!-- 引用总价格来触发计算属性 -->
+        <span v-show="false">{{allPrice}}</span>
     </div>
 </template>
 
@@ -91,9 +93,32 @@ export default {
             captcha: '',
             // 接口返回的验证码
             code: 0,
-            // 调用订单详情接口返回的数据
+            // 调用选择机票接口返回的数据
             airInfo: {}
         }
+    },
+    computed: {
+      allPrice(){
+            // 若请求未完成，暂时不需计算，返回0
+            if(!this.airInfo.seat_infos){
+                return 0;
+            }
+
+            // 设置
+            let price = 0
+            // 机票单价
+            price += this.airInfo.seat_infos.org_settle_price
+            // 保险
+            price += 30 * this.insurances.length
+            // 燃油
+            price += this.airInfo.airport_tax_audlet
+            // 人数
+            price *= this.users.length
+            
+            // 存储 state
+            this.$store.commit('air/setAllPrice', price)
+            return price
+      }  
     },
     methods: {
         // 添加乘机人
@@ -112,7 +137,7 @@ export default {
         // 获得保险id
         getInsurancesId(id){
             // 判断是否含有数据的值
-            console.log(id)
+            // console.log(id)
             const index = this.insurances.indexOf(id)
             if(index > -1){
                 this.insurances.splice(index, 1)
@@ -164,7 +189,7 @@ export default {
                 air: id,
                 seat_xid
             }
-            console.log(data)
+            // console.log(data)
 
             // 交互判断
             if(!this.users[0].username || !this.users[0].id){
@@ -218,14 +243,16 @@ export default {
     }, 
     mounted () {
         const {id, seat_xid} = this.$route.query
-        // 调用订单详情接口
+        // 调用选择机票接口
         this.$axios({
             url: 'airs/' + id,
             params: {seat_xid}
         })
         .then(res => {
             this.airInfo = res.data
-            console.log(res.data)
+            // 存储至 state
+            this.$store.commit('air/setAirInfo', this.airInfo)
+            // console.log(res.data)
         })
     }
 }
