@@ -1482,23 +1482,100 @@ import QRcode from 'qrcode';
 export default {
     mounted () {
         const {id} = this.$route.query
-        const {token} = this.$store.state.user.userInfo
-        // 调用订单详情接口
-        this.$axios({
+        // 调用微信付款接口
+        // 由于该组件加载比存储在state加载快，所以当该组件加载时，token并未获取到，故而会出现报 401 情况，通过setTimeout使该组件延迟10毫秒加载
+        setTimeout(() => {
+        	const {token} = this.$store.state.user.userInfo
+            this.$axios({
             url: '/airorders/' + id,
             headers: {Authorization: `Bearer ${token}`}
+            })
+            .then(res => {
+                // console.log(res)
+                // 获得参数
+                const {code_url} = res.data.payInfo
+                // 获得元素
+                let canvas = document.getElementById('qrcode-stage')
+                QRcode.toCanvas(canvas, code_url, {
+                    width: 220
+                })
+            })
+        },10)
+    }
+}
+```
+
+###### 调用查询付款状态接口实现支付结果轮询 ######
+
+> 在 methods 创建 checkPay 方法来调用查询付款接口，并每三秒调用
+>
+> 在 mounted 钩子 调用微信付款接口 成功时，调用 checkPay 方法
+>
+> 通过 destoryed 钩子 清除定时器
+
+ **创建 checkPay 方法**
+
+设置 timer 变量 （data）
+
+```js
+checkPay(){
+    // 每3秒调用查询付款状态接口
+    this.timer = setInterval(() => {
+        const {id} = this.$route.query
+        const {token} = this.$store.state.user.userInfo
+
+        this.$axios({
+            url: '/airorders/checkpay',
+            headers: {Authorization: `Bearer ${token}`},
+            method: 'post',
+            data: {id, nonce_str: this.order.price, out_trade_no: this.order.orderNo}
         })
         .then(res => {
-            // console.log(res)
-            // 获得参数
-            const {code_url} = res.data.payInfo
-            // 获得元素
-            let canvas = document.getElementById('qrcode-stage')
-            QRcode.toCanvas(canvas, code_url, {
-                width: 220
-            })
+            if(res.statusTxt === '支付成功'){
+                // 清除定时
+                clearInterval(this.timer)
+                this.timer = null
+                // 提示
+                this.$alert('订单支付成功', '订单支付提示')
+            }
         })
-    }
+
+    }, 3000)
+}
+```
+
+**调用 checkPay 方法**
+
+```js
+setTimeout(() => {
+    const {token} = this.$store.state.user.userInfo
+    this.$axios({
+        url: '/airorders/' + id,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+    .then(res => {
+        console.log(res.data)
+        // 获得参数
+        const {code_url} = res.data.payInfo
+        this.order = res.data
+        // 获得元素
+        let canvas = document.getElementById('qrcode-stage')
+        QRcode.toCanvas(canvas, code_url, {
+            width: 220
+        })
+
+        // 支付结果轮询
+        this.checkPay()
+    })
+},10)
+```
+
+ **destoryed 钩子 清除定时器**
+
+```js
+destroyed () {
+    clearInterval(this.timer)
+    this.timer = null
 }
 ```
 

@@ -28,24 +28,69 @@
 <script>
 import QRcode from 'qrcode';
 export default {
+    data() {
+        return {
+            // 订单数据
+            order: {},
+            // 时间
+            timer: null
+        }
+    },
     mounted () {
         const {id} = this.$route.query
-        const {token} = this.$store.state.user.userInfo
         // 调用微信付款接口
-        this.$axios({
-            url: '/airorders/' + id,
-            headers: {Authorization: `Bearer ${token}`}
-        })
-        .then(res => {
-            // console.log(res)
-            // 获得参数
-            const {code_url} = res.data.payInfo
-            // 获得元素
-            let canvas = document.getElementById('qrcode-stage')
-            QRcode.toCanvas(canvas, code_url, {
-                width: 220
+        // 由于该组件加载比存储在state加载快，所以当该组件加载时，token并未获取到，故而会出现报 401 情况，通过setTimeout使该组件延迟10毫秒加载
+        setTimeout(() => {
+            const {token} = this.$store.state.user.userInfo
+            this.$axios({
+                url: '/airorders/' + id,
+                headers: {Authorization: `Bearer ${token}`}
             })
-        })
+            .then(res => {
+                console.log(res.data)
+                // 获得参数
+                const {code_url} = res.data.payInfo
+                this.order = res.data
+                // 获得元素
+                let canvas = document.getElementById('qrcode-stage')
+                QRcode.toCanvas(canvas, code_url, {
+                    width: 220
+                })
+
+                // 支付结果轮询
+                this.checkPay()
+            })
+        },10)
+    },
+    methods: {
+        checkPay(){
+            // 每3秒调用查询付款状态接口
+            this.timer = setInterval(() => {
+                const {id} = this.$route.query
+                const {token} = this.$store.state.user.userInfo
+                
+                this.$axios({
+                    url: '/airorders/checkpay',
+                    headers: {Authorization: `Bearer ${token}`},
+                    method: 'post',
+                    data: {id, nonce_str: this.order.price, out_trade_no: this.order.orderNo}
+                })
+                .then(res => {
+                    if(res.statusTxt === '支付成功'){
+                        // 清除定时
+                        clearInterval(this.timer)
+                        this.timer = null
+                        // 提示
+                        this.$alert('订单支付成功', '订单支付提示')
+                    }
+                })
+                
+            }, 3000)
+        }
+    },
+    destroyed () {
+        clearInterval(this.timer)
+        this.timer = null
     }
 }
 </script>
