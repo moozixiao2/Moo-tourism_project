@@ -1405,3 +1405,57 @@ computed: {
 <span v-show="false">{{allPrice}}</span>
 ```
 
+#### 4.5 错误拦截（未登录） ####
+
+> 通过在 plugins/axios.js 判断 状态若是 401 或是 403 ，则说明用户未登录
+>
+> 通过 在 nuxt 对象 解构出 重定向 (redirect) 来设置路由重定向至登录页
+>
+> 当用户登录成功，则返回上一页操作
+
+**axios.js**
+
+```js
+export default ( {$axios, redirect} ) => {
+    // 错误拦截
+    $axios.onError(res => {
+        // 解构
+        const {message, statusCode} = res.response.data
+        if(statusCode === 400){
+            Message.error(message)
+        }
+
+        if(statusCode === 401 || statusCode === 403){
+            Message.error('您未登录，请先登录...')
+            redirect('/user/login')
+        }
+    })
+}
+```
+
+**在 loginForm 组件中**
+
+```js
+handleLogin(){
+    // 二次验证
+    this.$refs.form.validate(valid => {
+        if(valid){
+            // 接口
+            this.$store.dispatch('user/login', this.form).then(res => {
+                this.$message({
+                    type: 'success',
+                    message: '登录成功,正在为您跳转...',
+                    duration: 1000
+                })
+                setTimeout(() => {
+                    // 返回上一页
+                    this.$router.back()
+                }, 1000)
+            })
+        }else{
+            this.$message.warning('请输入必填项')
+        }
+    })  
+}
+```
+

@@ -56,10 +56,15 @@ export default {
                     //     }, 3000)
                     // })
                     this.$store.dispatch('user/login', this.form).then(res => {
-                        this.$message.success('登录成功,正在为您跳转...')
+                        this.$message({
+                            type: 'success',
+                            message: '登录成功,正在为您跳转...',
+                            duration: 1000
+                        })
                         setTimeout(() => {
-                            this.$router.replace('/')
-                        }, 3000)
+                            // 返回上一页
+                            this.$router.back()
+                        }, 1000)
                     })
                 }else{
                     this.$message.warning('请输入必填项')
