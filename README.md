@@ -1459,3 +1459,46 @@ handleLogin(){
 }
 ```
 
+#### 4.6 pay组件 (付款) ####
+
+> 组件 付款金额的显示 
+
+> 通过 npm install --save qrcode 下载 生成二维码插件
+
+> 调用接口，引入并使用 qrcode 实现二维码生成
+
+###### **组件 付款金额的显示  ** ######
+
+```js
+<div class="pay-title">
+    支付总金额 <span class="pay-price">￥ {{$store.state.air.allPrice}}</span>
+</div>
+```
+
+###### 调用接口，生成二维码  ######
+
+```js
+import QRcode from 'qrcode';
+export default {
+    mounted () {
+        const {id} = this.$route.query
+        const {token} = this.$store.state.user.userInfo
+        // 调用订单详情接口
+        this.$axios({
+            url: '/airorders/' + id,
+            headers: {Authorization: `Bearer ${token}`}
+        })
+        .then(res => {
+            // console.log(res)
+            // 获得参数
+            const {code_url} = res.data.payInfo
+            // 获得元素
+            let canvas = document.getElementById('qrcode-stage')
+            QRcode.toCanvas(canvas, code_url, {
+                width: 220
+            })
+        })
+    }
+}
+```
+
